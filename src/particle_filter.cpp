@@ -27,7 +27,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
 	default_random_engine gen;
-	num_particles = 100;
+	num_particles = 20;
 
 	normal_distribution<double> dist_x(x, std[0]);
 	normal_distribution<double> dist_y(y, std[1]);
@@ -59,9 +59,15 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	normal_distribution<double> dist_theta(0, std_pos[2]);
 
 	for(int i=0; i<num_particles; i++){
-		particles[i].x     += velocity / yaw_rate * ( sin( particles[i].theta + yaw_rate * delta_t ) - sin( particles[i].theta ) ) + dist_x(gen);
-		particles[i].y     += velocity / yaw_rate * ( cos( particles[i].theta ) - cos( particles[i].theta + yaw_rate * delta_t ) ) + dist_y(gen);
-		particles[i].theta += yaw_rate * delta_t + dist_theta(gen);
+		if( fabs(yaw_rate) > DBL_EPSILON ){
+			particles[i].x     += velocity / yaw_rate * ( sin( particles[i].theta + yaw_rate * delta_t ) - sin( particles[i].theta ) ) + dist_x(gen);
+			particles[i].y     += velocity / yaw_rate * ( cos( particles[i].theta ) - cos( particles[i].theta + yaw_rate * delta_t ) ) + dist_y(gen);
+			particles[i].theta += yaw_rate * delta_t + dist_theta(gen);
+		}
+		else{
+			particles[i].x     += velocity * cos( particles[i].theta ) * delta_t;
+			particles[i].y     += velocity * sin( particles[i].theta ) * delta_t;
+		}
 	}
 }
 
